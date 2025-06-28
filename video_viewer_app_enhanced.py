@@ -208,10 +208,8 @@ def display_video_info(item, idx):
         if youtube_id:
             st.markdown("#### 🎥 YouTube 비디오")
             
-            # 첫 번째 relevant window의 시작 시간으로 비디오 시작
+            # VID의 시작 시간으로 비디오 시작
             embed_start_time = video_start_time
-            if relevant_windows and len(relevant_windows[0]) >= 2:
-                embed_start_time += relevant_windows[0][0]
             
             embed_url = get_youtube_embed_url(youtube_id, embed_start_time)
             
@@ -268,7 +266,7 @@ def main():
             "📄 페이지당 아이템 수", 
             min_value=1, 
             max_value=10, 
-            value=3,
+            value=1,
             help="한 페이지에 표시할 아이템 수를 선택하세요"
         )
         
