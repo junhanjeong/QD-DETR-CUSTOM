@@ -295,9 +295,22 @@ def main():
             if search_query.lower() in item.get('query', '').lower()
         ]
         
+        # 검색 시 페이지를 1로 리셋
+        if 'last_search_query' not in st.session_state:
+            st.session_state.last_search_query = ""
+        
+        if st.session_state.last_search_query != search_query:
+            st.session_state.page = 1
+            st.session_state.last_search_query = search_query
+        
         if not filtered_data:
             st.warning(f"🔍 '{search_query}'에 대한 검색 결과가 없습니다.")
             return
+    else:
+        # 검색어가 없으면 검색 상태 초기화
+        if 'last_search_query' in st.session_state and st.session_state.last_search_query:
+            st.session_state.page = 1
+            st.session_state.last_search_query = ""
     
     # 상태 정보
     total_items = len(filtered_data)
@@ -307,10 +320,14 @@ def main():
         st.info(f"🔍 검색 결과: {total_items}개 항목 발견")
     
     # 페이지네이션 설정
-    total_pages = (total_items - 1) // items_per_page + 1
+    total_pages = max(1, (total_items - 1) // items_per_page + 1)
     
     if 'page' not in st.session_state:
         st.session_state.page = 1
+    
+    # 현재 페이지가 유효한 범위에 있는지 확인
+    if st.session_state.page > total_pages:
+        st.session_state.page = total_pages
     
     # 페이지 네비게이션
     col1, col2, col3, col4, col5 = st.columns([1, 1, 2, 1, 1])
@@ -326,10 +343,15 @@ def main():
             st.rerun()
     
     with col3:
+        # 페이지 선택 범위 확인
+        page_options = list(range(1, total_pages + 1))
+        current_page_index = min(st.session_state.page - 1, len(page_options) - 1)
+        current_page_index = max(0, current_page_index)
+        
         page = st.selectbox(
             "페이지:",
-            range(1, total_pages + 1),
-            index=st.session_state.page - 1,
+            page_options,
+            index=current_page_index,
             key='page_select'
         )
         if page != st.session_state.page:
