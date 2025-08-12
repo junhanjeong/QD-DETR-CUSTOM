@@ -274,9 +274,9 @@ def main():
         st.markdown("---")
         st.markdown("#### 🔍 검색")
         search_query = st.text_input(
-            "쿼리 검색:",
-            placeholder="검색어를 입력하세요...",
-            help="쿼리 내용으로 검색할 수 있습니다"
+            "쿼리/QID 검색:",
+            placeholder="검색어 또는 QID를 입력하세요...",
+            help="쿼리 내용 또는 QID로 검색할 수 있습니다"
         )
     
     # 데이터 로드
@@ -290,10 +290,22 @@ def main():
     # 검색 필터링
     filtered_data = data
     if search_query:
-        filtered_data = [
-            item for item in data 
-            if search_query.lower() in item.get('query', '').lower()
-        ]
+        query_lower = search_query.strip().lower()
+        is_numeric = search_query.strip().isdigit()
+        if is_numeric:
+            # 숫자만 입력된 경우, QID 정확히 일치하는 항목 필터링 (쿼리 텍스트 포함 검색도 유지)
+            target_qid = int(search_query.strip())
+            filtered_data = [
+                item for item in data
+                if item.get('qid') == target_qid or query_lower in item.get('query', '').lower()
+            ]
+        else:
+            # 일반 텍스트 검색: 쿼리 내용 부분일치 또는 QID 문자열 부분일치
+            filtered_data = [
+                item for item in data
+                if (query_lower in item.get('query', '').lower())
+                or (query_lower in str(item.get('qid', '')))
+            ]
         
         # 검색 시 페이지를 1로 리셋
         if 'last_search_query' not in st.session_state:
